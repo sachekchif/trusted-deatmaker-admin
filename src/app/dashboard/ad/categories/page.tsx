@@ -108,7 +108,7 @@ export default function CategoriesPage() {
           <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">
             All Categories
           </h1>
-          <Button
+          <Button 
             onClick={handleCreateNew}
             className="bg-[#0092ca] hover:bg-[#007ba8] text-white px-8 h-12 rounded-full font-bold text-[16px] shadow-sm transition-all duration-200"
           >

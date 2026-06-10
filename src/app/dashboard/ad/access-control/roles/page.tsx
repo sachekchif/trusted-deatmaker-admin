@@ -9,25 +9,20 @@ import {
     useGetPermissionsQuery,
     useCreateRoleMutation
 } from "@/lib/store/features/adminDashboardApi/adminDashboardApi";
-import { RoleDialog } from "../_components/role-dialog";
+import { CreateRoleWizard } from "../_components/create-role-wizard";
+import { TemplateBuilderModal } from "../_components/template-builder-modal";
 import { AdminRole } from "@/lib/store/features/adminDashboardApi/adminDashboardTypes";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { HistoryTable } from "@/components/dashboard/tables";
 import { createRoleColumns } from "../../_columns/roles-table-columns";
 import { RolesStats } from "./_components/roles-stats";
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator
-} from "@/components/ui/breadcrumb";
+import { useRouter } from "next/navigation";
 
 export default function RolesPermissionsPage() {
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedRole, setSelectedRole] = useState<AdminRole | null>(null);
+    const router = useRouter();
+    const [isWizardOpen, setIsWizardOpen] = useState(false);
+    const [isTemplateOpen, setIsTemplateOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
 
     const { data: rolesData, isLoading, refetch } = useGetRolesQuery();
@@ -36,9 +31,14 @@ export default function RolesPermissionsPage() {
 
     const handleCreateRole = async (values: any) => {
         try {
-            await createRole(values).unwrap();
+            // Note: backend only expects name, description, permissions right now
+            await createRole({
+                name: values.name,
+                description: values.description || values.name,
+                permissions: values.permissions
+            }).unwrap();
             toast.success("Role created successfully.");
-            setIsDialogOpen(false);
+            setIsWizardOpen(false);
             refetch();
         } catch (error: any) {
             toast.error(error?.data?.message || "Failed to create role");
@@ -46,8 +46,7 @@ export default function RolesPermissionsPage() {
     };
 
     const handleEditRole = (role: AdminRole) => {
-        setSelectedRole(role);
-        setIsDialogOpen(true);
+        router.push(`/dashboard/ad/access-control/roles/${role.id}`);
     };
 
     const handleDeleteRole = (role: AdminRole) => {
@@ -70,7 +69,6 @@ export default function RolesPermissionsPage() {
         <div className="container mx-auto p-4 md:p-8 space-y-10 animate-in fade-in duration-700">
             {/* Breadcrumbs & Header */}
             <div className="space-y-4">
-
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden">
                     <div className="space-y-1">
                         <h1 className="text-xl font-bold tracking-tight text-gray-900 font-outfit">Roles & Permissions Management</h1>
@@ -91,15 +89,12 @@ export default function RolesPermissionsPage() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/50 p-4 rounded-2xl border border-gray-100 backdrop-blur-sm">
                 <div className="flex flex-wrap items-center gap-3">
                     <Button
-                        onClick={() => {
-                            setSelectedRole(null);
-                            setIsDialogOpen(true);
-                        }}
+                        onClick={() => setIsWizardOpen(true)}
                         className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold px-6 shadow-lg shadow-cyan-100"
                     >
                         <Plus className="mr-2 h-4.5 w-4.5" /> Create New Role
                     </Button>
-                    <Button variant="outline" className="font-semibold border-gray-200 hover:bg-gray-50 flex items-center gap-2">
+                    <Button variant="outline" onClick={() => setIsTemplateOpen(true)} className="font-semibold border-gray-200 hover:bg-gray-50 flex items-center gap-2">
                         <LayoutTemplate className="w-4 h-4 text-cyan-600" />
                         Role Templates
                     </Button>
@@ -143,27 +138,19 @@ export default function RolesPermissionsPage() {
                 </CardContent>
             </Card>
 
-            {/* Quick Tip Footer */}
-            {/* <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
-                <div className="bg-blue-600 p-2 rounded-lg shadow-md shadow-blue-200 shrink-0">
-                    <Info className="w-5 h-5 text-white" />
-                </div>
-                <div className="space-y-1">
-                    <p className="text-sm font-bold text-blue-900 leading-none">Quick Tip:</p>
-                    <p className="text-sm text-blue-800/80">
-                        Click <span className="font-bold underline decoration-blue-300">"Edit"</span> to modify role permissions, <span className="font-bold underline decoration-blue-300">"Clone"</span> to create a similar role, or <span className="font-bold underline decoration-blue-300">"Create New Role"</span> to start from scratch. All changes are logged and require approval for Level 3+ roles.
-                    </p>
-                </div>
-            </div> */}
-
-            {/* Role Management Dialog */}
-            <RoleDialog
-                isOpen={isDialogOpen}
-                onClose={() => setIsDialogOpen(false)}
+            {/* Role Creation Dialog */}
+            <CreateRoleWizard
+                isOpen={isWizardOpen}
+                onClose={() => setIsWizardOpen(false)}
                 onSubmit={handleCreateRole}
-                role={selectedRole}
                 availablePermissions={permissionsData?.data || []}
                 isLoading={isCreating}
+            />
+
+            {/* Template Builder Dialog */}
+            <TemplateBuilderModal
+                isOpen={isTemplateOpen}
+                onClose={() => setIsTemplateOpen(false)}
             />
         </div>
     );

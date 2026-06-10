@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dispute } from "./_columns/disputes-table-column";
+import { Dispute } from "../_columns/disputes-table-column";
 import { User, Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClaimDisputeMutation } from "@/lib/store/features/adminDashboardApi/adminDashboardApi";
