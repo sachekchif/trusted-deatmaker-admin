@@ -65,7 +65,7 @@ const configItems: ConfigItem[] = [
   {
     title: "Notification Settings",
     description: "Control and configure overall notification elements of the system",
-    href: "#",
+    href: "/dashboard/ad/config/notification-settings",
     icon: Bell,
   },
   {
